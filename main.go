@@ -33,7 +33,7 @@ func greetUsers() {
 
 }
 
-// func printFirstName(something []input value)[]out value{}
+// func printFirstName(something []InputValue)[]OutValue{}
 func getFirstNames() []string {
 	firstNames := []string{}
 	for _, booking := range bookings {
