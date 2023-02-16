@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/ZhijiunY/booking-app/helper"
@@ -96,47 +97,48 @@ func sendTickets(userTickets uint, firstName string, lastName string, email stri
 	fmt.Println("================================================================")
 	fmt.Printf("Sending tickets:\n %v \nto email address %v\n", ticket, email)
 	fmt.Println("================================================================")
-
+	wg.Done()
 }
+
+var wg = sync.WaitGroup{}
 
 func main() {
 
 	greetUsers()
 
-	for {
-		firstName, lastName, email, userTickets := getUserInput()
-		// validate
-		isValidName, isValidEmail, isValidTicketNumber := helper.ValidateUserInput(firstName, lastName, email, userTickets, remainingTickets)
+	firstName, lastName, email, userTickets := getUserInput()
+	// validate
+	isValidName, isValidEmail, isValidTicketNumber := helper.ValidateUserInput(firstName, lastName, email, userTickets, remainingTickets)
 
-		if isValidName && isValidEmail && isValidTicketNumber {
+	if isValidName && isValidEmail && isValidTicketNumber {
 
-			bookTickets(userTickets, firstName, lastName, email)
-			sendTickets(userTickets, firstName, lastName, email)
+		bookTickets(userTickets, firstName, lastName, email)
 
-			// call function printFirstName
-			firstNames := getFirstNames()
-			fmt.Printf("The first name of bookings are: %v\n", firstNames)
+		wg.Add(1)
+		go sendTickets(userTickets, firstName, lastName, email)
 
-			if remainingTickets == 0 {
-				// end program
-				fmt.Printf("Our conference is booked out. Come back next year.")
-				break
-			}
+		// call function printFirstName
+		firstNames := getFirstNames()
+		fmt.Printf("The first name of bookings are: %v\n", firstNames)
 
-		} else {
-			if !isValidName {
-				fmt.Println("first name or last name you entered is too short")
-			}
-			if !isValidEmail {
-				fmt.Println("email address you entered doesn't contain @ sign")
-			}
-			if !isValidTicketNumber {
-				fmt.Println("number of tickets you entered is invalid")
-			}
-
-			fmt.Println("Your input data is invalid. Please try again.")
+		if remainingTickets == 0 {
+			// end program
+			fmt.Printf("Our conference is booked out. Come back next year.")
+			//break
 		}
 
+	} else {
+		if !isValidName {
+			fmt.Println("first name or last name you entered is too short")
+		}
+		if !isValidEmail {
+			fmt.Println("email address you entered doesn't contain @ sign")
+		}
+		if !isValidTicketNumber {
+			fmt.Println("number of tickets you entered is invalid")
+		}
+		fmt.Println("Your input data is invalid. Please try again.")
 	}
+	wg.Wait()
 
 }
